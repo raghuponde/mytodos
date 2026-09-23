@@ -1,52 +1,36 @@
-using System.Collections.Concurrent;
+using Microsoft.EntityFrameworkCore;
+using MyTodos.Api.Data;
 using MyTodos.Api.Models;
 
 namespace MyTodos.Api.Services;
 
 public class TodoService : ITodoService
 {
-    private readonly ConcurrentDictionary<Guid, Todo> _todos = new();
+    private readonly TodosDbContext _db;
 
-    public TodoService()
+    public TodoService(TodosDbContext db)
     {
-        var seed1 = new Todo
-        {
-            Id = Guid.NewGuid(),
-            Title = "Set up backend skeleton",
-            IsComplete = true,
-            CreatedAt = DateTime.UtcNow,
-        };
-        var seed2 = new Todo
-        {
-            Id = Guid.NewGuid(),
-            Title = "Set up frontend skeleton",
-            DueDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
-            IsComplete = false,
-            CreatedAt = DateTime.UtcNow,
-        };
-        _todos[seed1.Id] = seed1;
-        _todos[seed2.Id] = seed2;
+        _db = db;
     }
 
-    public Task<IEnumerable<Todo>> GetAllAsync(TodoStatusFilter filter = TodoStatusFilter.All)
+    public async Task<IEnumerable<Todo>> GetAllAsync(TodoStatusFilter filter = TodoStatusFilter.All)
     {
-        var todos = _todos.Values.OrderBy(t => t.CreatedAt).AsEnumerable();
-        todos = filter switch
+        var query = _db.Todos.OrderBy(t => t.CreatedAt).AsQueryable();
+        query = filter switch
         {
-            TodoStatusFilter.Pending => todos.Where(t => !t.IsComplete),
-            TodoStatusFilter.Completed => todos.Where(t => t.IsComplete),
-            _ => todos,
+            TodoStatusFilter.Pending => query.Where(t => !t.IsComplete),
+            TodoStatusFilter.Completed => query.Where(t => t.IsComplete),
+            _ => query,
         };
-        return Task.FromResult(todos);
+        return await query.ToListAsync();
     }
 
-    public Task<Todo?> GetByIdAsync(Guid id)
+    public async Task<Todo?> GetByIdAsync(Guid id)
     {
-        _todos.TryGetValue(id, out var todo);
-        return Task.FromResult(todo);
+        return await _db.Todos.FindAsync(id);
     }
 
-    public Task<Todo> CreateAsync(string title, DateOnly? dueDate)
+    public async Task<Todo> CreateAsync(string title, DateOnly? dueDate)
     {
         var todo = new Todo
         {
@@ -56,25 +40,36 @@ public class TodoService : ITodoService
             IsComplete = false,
             CreatedAt = DateTime.UtcNow,
         };
-        _todos[todo.Id] = todo;
-        return Task.FromResult(todo);
+        _db.Todos.Add(todo);
+        await _db.SaveChangesAsync();
+        return todo;
     }
 
-    public Task<Todo?> UpdateAsync(Guid id, string title, DateOnly? dueDate, bool isComplete)
+    public async Task<Todo?> UpdateAsync(Guid id, string title, DateOnly? dueDate, bool isComplete)
     {
-        if (!_todos.TryGetValue(id, out var todo))
+        var todo = await _db.Todos.FindAsync(id);
+        if (todo is null)
         {
-            return Task.FromResult<Todo?>(null);
+            return null;
         }
 
         todo.Title = title;
         todo.DueDate = dueDate;
         todo.IsComplete = isComplete;
-        return Task.FromResult<Todo?>(todo);
+        await _db.SaveChangesAsync();
+        return todo;
     }
 
-    public Task<bool> DeleteAsync(Guid id)
+    public async Task<bool> DeleteAsync(Guid id)
     {
-        return Task.FromResult(_todos.TryRemove(id, out _));
+        var todo = await _db.Todos.FindAsync(id);
+        if (todo is null)
+        {
+            return false;
+        }
+
+        _db.Todos.Remove(todo);
+        await _db.SaveChangesAsync();
+        return true;
     }
 }

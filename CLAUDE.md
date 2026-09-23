@@ -2,7 +2,7 @@
 
 ## Project overview
 MyTodos is a minimal, single-user todo app: create, edit, complete/uncomplete, delete, and list todos, with an optional due date.
-There is no authentication and no database. Data lives in memory and resets when the backend restarts. This is intentional; do not "fix" it.
+There is no authentication. Data is persisted in SQL Server via EF Core and survives backend restarts.
 
 The full spec is in `MyTodos-PRD.md`. When in doubt about scope, follow the PRD.
 
@@ -11,16 +11,19 @@ The full spec is in `MyTodos-PRD.md`. When in doubt about scope, follow the PRD.
 - **Frontend:** React + **TypeScript** (`.tsx`), built with Vite
 - **HTTP client:** **axios**
 - **Tests:** **xUnit** for the backend only. No frontend tests in v1.
-- **Storage:** in-memory, via a singleton service
+- **Storage:** SQL Server via EF Core Code-First + Migrations, scoped `DbContext`
 
 ## Repository layout
 ```
 MyTodos.Api/                 ASP.NET Core Web API
 ├── Controllers/TodosController.cs
 ├── Models/Todo.cs           Entity + request DTOs (CreateTodoRequest, UpdateTodoRequest)
+├── Models/TodoStatusFilter.cs
+├── Data/TodosDbContext.cs   EF Core DbContext (SQL Server), seed data via HasData()
+├── Migrations/              EF Core migrations (dotnet ef migrations add ...)
 ├── Services/ITodoService.cs
-├── Services/TodoService.cs  In-memory store, registered as singleton
-└── Program.cs               DI, CORS, startup
+├── Services/TodoService.cs  EF Core-backed store, registered scoped (DbContext lifetime)
+└── Program.cs               DI, CORS, startup, applies pending migrations in Development
 
 MyTodos.Api.Tests/           xUnit tests for TodoService and TodosController
 
@@ -35,9 +38,11 @@ mytodos-frontend/            React + TypeScript (Vite)
 
 ## Commands
 Backend (from `MyTodos.Api/`):
-- Run: `dotnet run` (serves on `https://localhost:5001`; set this in `Properties/launchSettings.json`)
+- Run: `dotnet run` (serves on `https://localhost:5001`; set this in `Properties/launchSettings.json`; applies pending EF Core migrations automatically in Development)
 - Build: `dotnet build`
 - Test (from repo root): `dotnet test`
+- New migration after model changes: `dotnet ef migrations add <Name>` (from `MyTodos.Api/`)
+- Connection string: `ConnectionStrings:TodosDb` in `appsettings.Development.json` — points at a local SQL Server instance (Windows Authentication), machine-specific
 
 Frontend (from `mytodos-frontend/`):
 - Install: `npm install`
@@ -71,9 +76,10 @@ Clients never send `id` or `createdAt` in request bodies.
 
 ## Backend conventions
 - Controllers stay thin: validate input, call `ITodoService`, map results to HTTP responses. Business logic belongs in `TodoService`.
-- `TodoService` is registered with `AddSingleton<ITodoService, TodoService>()`. Because a singleton is shared across concurrent requests, guard the collection with a `lock` (or use `ConcurrentDictionary<Guid, Todo>`).
+- `TodoService` wraps `TodosDbContext` (EF Core) and is registered with `AddScoped<ITodoService, TodoService>()`, matching the `DbContext`'s scoped lifetime — do not switch it back to a singleton.
 - Use data annotations (`[Required]`, etc.) on request DTOs plus an explicit whitespace check on `title`. Return `ValidationProblem`/`BadRequest` for invalid input.
-- Use async signatures on the service interface (`Task<...>`) so a real database can be added later without changing callers.
+- Use async signatures on the service interface (`Task<...>`), and EF Core's async methods (`ToListAsync`, `FindAsync`, `SaveChangesAsync`, etc.) inside `TodoService`.
+- Schema changes go through EF Core migrations (`dotnet ef migrations add <Name>`), not manual SQL.
 - CORS: a named policy in `Program.cs` allowing origin `http://localhost:5173`, any header, any method.
 - Enable nullable reference types and treat warnings seriously.
 
@@ -90,11 +96,12 @@ Clients never send `id` or `createdAt` in request bodies.
 
 ## Testing
 - Backend: xUnit tests in `MyTodos.Api.Tests/`. Cover `TodoService` CRUD, title validation, `status` filtering, and 404 paths in the controller.
+- `TodoService` tests use EF Core's `InMemoryDatabase` provider (`Microsoft.EntityFrameworkCore.InMemory`), each test creating a fresh `TodosDbContext` with a unique database name for isolation — never point tests at the real SQL Server instance.
 - Add or update tests whenever backend behavior changes, and run `dotnet test` before finishing.
 - Frontend: no tests in v1. Verify with `npm run build` (type check) and `npm run lint`.
 
 ## Out of scope for v1 — do not add
-Authentication or user accounts, databases or file persistence, priorities/tags/categories/subtasks, reminders or notifications, sorting, pagination, offline support. (Filtering `GET /api/todos` by completion status via `?status=` is implemented — see API contract; other filtering is still out of scope.) If a task seems to need one of these, stop and ask first.
+Authentication or user accounts, file persistence beyond SQL Server, priorities/tags/categories/subtasks, reminders or notifications, sorting, pagination, offline support. (Filtering `GET /api/todos` by completion status via `?status=` is implemented — see API contract; other filtering is still out of scope.) If a task seems to need one of these, stop and ask first.
 
 ## How to work in this repo
 - Implement changes directly; no need to wait for plan approval.
