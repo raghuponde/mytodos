@@ -2,20 +2,34 @@ import { useEffect, useState } from 'react'
 import TodoList from './components/TodoList.tsx'
 import TodoForm from './components/TodoForm.tsx'
 import { createTodo, deleteTodo, getTodos, updateTodo } from './services/todoApi.ts'
-import type { CreateTodoRequest, Todo } from './types/todo'
+import type { CreateTodoRequest, Todo, TodoStatusFilter } from './types/todo'
+
+const STATUS_FILTERS: { value: TodoStatusFilter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'completed', label: 'Completed' },
+]
+
+function matchesFilter(todo: Todo, filter: TodoStatusFilter): boolean {
+  if (filter === 'pending') return !todo.isComplete
+  if (filter === 'completed') return todo.isComplete
+  return true
+}
 
 function App() {
   const [todos, setTodos] = useState<Todo[]>([])
+  const [statusFilter, setStatusFilter] = useState<TodoStatusFilter>('all')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
 
   useEffect(() => {
-    getTodos()
+    setLoading(true)
+    getTodos(statusFilter)
       .then(setTodos)
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false))
-  }, [])
+  }, [statusFilter])
 
   async function handleSubmit(values: CreateTodoRequest) {
     setError(null)
@@ -25,11 +39,15 @@ function App() {
           ...values,
           isComplete: editingTodo.isComplete,
         })
-        setTodos((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
+        setTodos((prev) =>
+          matchesFilter(updated, statusFilter)
+            ? prev.map((t) => (t.id === updated.id ? updated : t))
+            : prev.filter((t) => t.id !== updated.id),
+        )
         setEditingTodo(null)
       } else {
         const created = await createTodo(values)
-        setTodos((prev) => [...prev, created])
+        setTodos((prev) => (matchesFilter(created, statusFilter) ? [...prev, created] : prev))
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -44,7 +62,11 @@ function App() {
         dueDate: todo.dueDate,
         isComplete: !todo.isComplete,
       })
-      setTodos((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
+      setTodos((prev) =>
+        matchesFilter(updated, statusFilter)
+          ? prev.map((t) => (t.id === updated.id ? updated : t))
+          : prev.filter((t) => t.id !== updated.id),
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
     }
@@ -75,12 +97,27 @@ function App() {
           <h1>MyTodos</h1>
           <p className="app-subtitle">A simple place to track what needs doing.</p>
         </div>
-        {!loading && todos.length > 0 && (
+        {!loading && statusFilter === 'all' && todos.length > 0 && (
           <div className="stats-badge">
             {completedCount} / {todos.length} done
           </div>
         )}
       </header>
+
+      <div className="status-filter" role="tablist" aria-label="Filter todos by status">
+        {STATUS_FILTERS.map(({ value, label }) => (
+          <button
+            key={value}
+            type="button"
+            role="tab"
+            aria-selected={statusFilter === value}
+            className={`status-filter-btn${statusFilter === value ? ' active' : ''}`}
+            onClick={() => setStatusFilter(value)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
       <TodoForm
         key={editingTodo?.id ?? 'new'}
@@ -103,6 +140,7 @@ function App() {
       ) : (
         <TodoList
           todos={todos}
+          statusFilter={statusFilter}
           onToggleComplete={handleToggleComplete}
           onEdit={setEditingTodo}
           onDelete={handleDelete}

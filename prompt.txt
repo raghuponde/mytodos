@@ -4,7 +4,14 @@ A coding agent is nothing but Model + Tools which it uses to  Perform some tasks
   I tell him to behave like an engineer. He will behave like an engineer, lawyer that is what we  call it a persona 
   
   
+  I had modified the code. Both the frontend and backend are working. 
   
   
+  so test folder i had not implemented and now i am using cluade code to implement that so i had not copied test folder from section 2 only front end and back end folders i had copied okay .
   
+  prompt 1 not written as i had told claude to do it directly and u can check video 
   
+  prompt2 
+  --------
+  
+  Add a ?status= query parameter to GET /todos Valid values: 'pending', 'completed', 'all' (default 'all'). Filter accordingly. Follow CLAUDE.md.

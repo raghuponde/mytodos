@@ -28,9 +28,15 @@ public class TodoService : ITodoService
         _todos[seed2.Id] = seed2;
     }
 
-    public Task<IEnumerable<Todo>> GetAllAsync()
+    public Task<IEnumerable<Todo>> GetAllAsync(TodoStatusFilter filter = TodoStatusFilter.All)
     {
         var todos = _todos.Values.OrderBy(t => t.CreatedAt).AsEnumerable();
+        todos = filter switch
+        {
+            TodoStatusFilter.Pending => todos.Where(t => !t.IsComplete),
+            TodoStatusFilter.Completed => todos.Where(t => t.IsComplete),
+            _ => todos,
+        };
         return Task.FromResult(todos);
     }
 

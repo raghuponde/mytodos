@@ -4,7 +4,7 @@ namespace MyTodos.Api.Services;
 
 public interface ITodoService
 {
-    Task<IEnumerable<Todo>> GetAllAsync();
+    Task<IEnumerable<Todo>> GetAllAsync(TodoStatusFilter filter = TodoStatusFilter.All);
     Task<Todo?> GetByIdAsync(Guid id);
     Task<Todo> CreateAsync(string title, DateOnly? dueDate);
     Task<Todo?> UpdateAsync(Guid id, string title, DateOnly? dueDate, bool isComplete);

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { CreateTodoRequest, Todo, UpdateTodoRequest } from '../types/todo'
+import type { CreateTodoRequest, Todo, TodoStatusFilter, UpdateTodoRequest } from '../types/todo'
 
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000/api'
 
@@ -21,9 +21,9 @@ function extractErrorMessage(error: unknown): string {
   return 'Something went wrong. Please try again.'
 }
 
-export async function getTodos(): Promise<Todo[]> {
+export async function getTodos(status: TodoStatusFilter = 'all'): Promise<Todo[]> {
   try {
-    const response = await api.get<Todo[]>('/todos')
+    const response = await api.get<Todo[]>('/todos', { params: { status } })
     return response.data
   } catch (error) {
     throw new Error(extractErrorMessage(error))

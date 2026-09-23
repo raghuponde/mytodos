@@ -61,7 +61,7 @@ Base path: `/api/todos`
 
 | Method | Route | Body | Success | Errors |
 |---|---|---|---|---|
-| GET | `/api/todos` | — | 200, array of todos | — |
+| GET | `/api/todos` | — | 200, array of todos (optional `?status=pending\|completed\|all`, default `all`) | 400 if `status` is invalid |
 | GET | `/api/todos/{id}` | — | 200, todo | 404 |
 | POST | `/api/todos` | `{ title, dueDate? }` | 201 + `Location` header, created todo | 400 if title empty |
 | PUT | `/api/todos/{id}` | `{ title, dueDate?, isComplete }` | 200, updated todo | 400, 404 |
@@ -89,12 +89,12 @@ Clients never send `id` or `createdAt` in request bodies.
 - Plain CSS in `index.css` (or co-located `.css` files). Don't add a UI or styling library without asking.
 
 ## Testing
-- Backend: xUnit tests in `MyTodos.Api.Tests/`. Cover `TodoService` CRUD, title validation, and 404 paths in the controller.
+- Backend: xUnit tests in `MyTodos.Api.Tests/`. Cover `TodoService` CRUD, title validation, `status` filtering, and 404 paths in the controller.
 - Add or update tests whenever backend behavior changes, and run `dotnet test` before finishing.
 - Frontend: no tests in v1. Verify with `npm run build` (type check) and `npm run lint`.
 
 ## Out of scope for v1 — do not add
-Authentication or user accounts, databases or file persistence, priorities/tags/categories/subtasks, reminders or notifications, sorting/filtering, pagination, offline support. If a task seems to need one of these, stop and ask first.
+Authentication or user accounts, databases or file persistence, priorities/tags/categories/subtasks, reminders or notifications, sorting, pagination, offline support. (Filtering `GET /api/todos` by completion status via `?status=` is implemented — see API contract; other filtering is still out of scope.) If a task seems to need one of these, stop and ask first.
 
 ## How to work in this repo
 - Implement changes directly; no need to wait for plan approval.

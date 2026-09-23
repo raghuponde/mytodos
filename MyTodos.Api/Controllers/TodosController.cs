@@ -16,9 +16,22 @@ public class TodosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] string status = "all")
     {
-        var todos = await _todoService.GetAllAsync();
+        TodoStatusFilter? filter = status.Trim().ToLowerInvariant() switch
+        {
+            "all" => TodoStatusFilter.All,
+            "pending" => TodoStatusFilter.Pending,
+            "completed" => TodoStatusFilter.Completed,
+            _ => null,
+        };
+
+        if (filter is null)
+        {
+            return BadRequest(new { message = "Invalid status. Valid values: 'pending', 'completed', 'all'." });
+        }
+
+        var todos = await _todoService.GetAllAsync(filter.Value);
         return Ok(todos);
     }
 

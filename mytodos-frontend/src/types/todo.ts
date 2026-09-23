@@ -6,6 +6,8 @@ export interface Todo {
   createdAt: string
 }
 
+export type TodoStatusFilter = 'all' | 'pending' | 'completed'
+
 export interface CreateTodoRequest {
   title: string
   dueDate?: string | null
