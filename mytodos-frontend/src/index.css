@@ -1,0 +1,343 @@
+:root {
+  --color-bg: #eef1f8;
+  --color-surface: #ffffff;
+  --color-border: #e3e7f0;
+  --color-text: #1f2430;
+  --color-text-muted: #6b7280;
+  --color-primary: #6558f5;
+  --color-primary-dark: #4d3fe0;
+  --color-danger: #e5484d;
+  --color-danger-bg: #fdecec;
+  --color-success: #22b07d;
+  --shadow-card: 0 1px 2px rgba(31, 36, 48, 0.04), 0 8px 24px rgba(31, 36, 48, 0.06);
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: linear-gradient(180deg, #eef1f8 0%, #e6e9f5 100%);
+  color: var(--color-text);
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.app-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, var(--color-primary), #9b8cff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.app-subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+.stats-badge {
+  flex-shrink: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  white-space: nowrap;
+}
+
+/* Form */
+
+.todo-form {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 1.1rem;
+  margin-bottom: 1.75rem;
+}
+
+.todo-form-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.todo-form-title {
+  flex: 1 1 220px;
+}
+
+.todo-form-date {
+  flex: 0 1 160px;
+}
+
+.todo-form input {
+  border: 1px solid var(--color-border);
+  background: #fafbfe;
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.todo-form input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(101, 88, 245, 0.15);
+  background: #fff;
+}
+
+.todo-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.05s ease, background 0.15s ease, opacity 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.btn-ghost:hover {
+  background: #f3f4f8;
+}
+
+.form-error {
+  margin: 0.6rem 0 0;
+  color: var(--color-danger);
+  font-size: 0.85rem;
+}
+
+/* Error banner */
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: var(--color-danger-bg);
+  border: 1px solid rgba(229, 72, 77, 0.25);
+  color: #b3241f;
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+}
+
+.error-dismiss {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.2rem;
+}
+
+.loading-text {
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-top: 2rem;
+}
+
+/* List */
+
+.todo-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  box-shadow: var(--shadow-card);
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.todo-item.completed {
+  background: #fafbfc;
+}
+
+.todo-checkbox {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #c7cbdb;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  padding: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.todo-item.completed .todo-checkbox {
+  background: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.todo-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.todo-title {
+  font-size: 0.98rem;
+  overflow-wrap: break-word;
+}
+
+.todo-item.completed .todo-title {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+.todo-due-date {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  width: fit-content;
+}
+
+.todo-due-date.overdue {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.todo-actions {
+  display: flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: #f0effe;
+  color: var(--color-primary-dark);
+}
+
+.icon-btn-danger:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+/* Empty state */
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+}
+
+.empty-state-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.empty-state-subtitle {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+
+@media (max-width: 480px) {
+  .app-header {
+    flex-direction: column;
+  }
+
+  .todo-form-fields {
+    flex-direction: column;
+  }
+
+  .todo-form-date {
+    flex: 1;
+  }
+
+  .todo-form-actions {
+    justify-content: stretch;
+  }
+
+  .todo-form-actions .btn {
+    flex: 1;
+  }
+}

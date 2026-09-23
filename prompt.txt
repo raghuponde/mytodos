@@ -1,0 +1,10 @@
+Will take from Section 2  only folders frontend code and back end code folder  
+A coding agent is nothing but Model + Tools which it uses to  Perform some tasks like file editing, file searching, and web searching 
+  + Instruction.  Means I will provide all the context to him: what to do, what not to do, so it will behave like  I have told him. 
+  I tell him to behave like an engineer. He will behave like an engineer, lawyer that is what we  call it a persona 
+  
+  
+  
+  
+  
+  
