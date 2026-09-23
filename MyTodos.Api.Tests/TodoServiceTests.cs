@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using MyTodos.Api.Data;
 using MyTodos.Api.Models;
 using MyTodos.Api.Services;
 
@@ -5,10 +7,41 @@ namespace MyTodos.Api.Tests;
 
 public class TodoServiceTests
 {
+    private static readonly Guid CompleteSeedId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+    private static readonly Guid PendingSeedId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+
+    private static TodoService CreateSeededService()
+    {
+        var options = new DbContextOptionsBuilder<TodosDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        var db = new TodosDbContext(options);
+
+        db.Todos.AddRange(
+            new Todo
+            {
+                Id = CompleteSeedId,
+                Title = "Set up backend skeleton",
+                IsComplete = true,
+                CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            },
+            new Todo
+            {
+                Id = PendingSeedId,
+                Title = "Set up frontend skeleton",
+                DueDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)),
+                IsComplete = false,
+                CreatedAt = new DateTime(2026, 1, 1, 0, 0, 1, DateTimeKind.Utc),
+            });
+        db.SaveChanges();
+
+        return new TodoService(db);
+    }
+
     [Fact]
     public async Task GetAllAsync_ReturnsSeededTodos_OrderedByCreatedAt()
     {
-        var service = new TodoService();
+        var service = CreateSeededService();
 
         var todos = (await service.GetAllAsync()).ToList();
 
@@ -23,7 +56,7 @@ public class TodoServiceTests
     [Fact]
     public async Task GetAllAsync_WithAllFilter_ReturnsAllSeededTodos()
     {
-        var service = new TodoService();
+        var service = CreateSeededService();
 
         var todos = (await service.GetAllAsync(TodoStatusFilter.All)).ToList();
 
@@ -33,7 +66,7 @@ public class TodoServiceTests
     [Fact]
     public async Task GetAllAsync_WithPendingFilter_ReturnsOnlyIncompleteTodos()
     {
-        var service = new TodoService();
+        var service = CreateSeededService();
 
         var todos = (await service.GetAllAsync(TodoStatusFilter.Pending)).ToList();
 
@@ -44,7 +77,7 @@ public class TodoServiceTests
     [Fact]
     public async Task GetAllAsync_WithCompletedFilter_ReturnsOnlyCompleteTodos()
     {
-        var service = new TodoService();
+        var service = CreateSeededService();
 
         var todos = (await service.GetAllAsync(TodoStatusFilter.Completed)).ToList();
 
@@ -55,19 +88,18 @@ public class TodoServiceTests
     [Fact]
     public async Task GetByIdAsync_ReturnsTodo_WhenIdExists()
     {
-        var service = new TodoService();
-        var existing = (await service.GetAllAsync()).First();
+        var service = CreateSeededService();
 
-        var todo = await service.GetByIdAsync(existing.Id);
+        var todo = await service.GetByIdAsync(CompleteSeedId);
 
         Assert.NotNull(todo);
-        Assert.Equal(existing.Id, todo!.Id);
+        Assert.Equal(CompleteSeedId, todo!.Id);
     }
 
     [Fact]
     public async Task GetByIdAsync_ReturnsNull_WhenIdDoesNotExist()
     {
-        var service = new TodoService();
+        var service = CreateSeededService();
 
         var todo = await service.GetByIdAsync(Guid.NewGuid());
 
@@ -77,7 +109,7 @@ public class TodoServiceTests
     [Fact]
     public async Task CreateAsync_AddsRetrievableTodo_WithGeneratedIdAndIncomplete()
     {
-        var service = new TodoService();
+        var service = CreateSeededService();
         var dueDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3));
 
         var created = await service.CreateAsync("Write tests", dueDate);
@@ -95,11 +127,10 @@ public class TodoServiceTests
     [Fact]
     public async Task UpdateAsync_UpdatesFields_WhenIdExists()
     {
-        var service = new TodoService();
-        var existing = (await service.GetAllAsync()).First();
+        var service = CreateSeededService();
         var newDueDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7));
 
-        var updated = await service.UpdateAsync(existing.Id, "Updated title", newDueDate, true);
+        var updated = await service.UpdateAsync(CompleteSeedId, "Updated title", newDueDate, true);
 
         Assert.NotNull(updated);
         Assert.Equal("Updated title", updated!.Title);
@@ -110,7 +141,7 @@ public class TodoServiceTests
     [Fact]
     public async Task UpdateAsync_ReturnsNull_WhenIdDoesNotExist()
     {
-        var service = new TodoService();
+        var service = CreateSeededService();
 
         var updated = await service.UpdateAsync(Guid.NewGuid(), "Does not matter", null, false);
 
@@ -120,19 +151,18 @@ public class TodoServiceTests
     [Fact]
     public async Task DeleteAsync_RemovesTodo_WhenIdExists()
     {
-        var service = new TodoService();
-        var existing = (await service.GetAllAsync()).First();
+        var service = CreateSeededService();
 
-        var deleted = await service.DeleteAsync(existing.Id);
+        var deleted = await service.DeleteAsync(CompleteSeedId);
 
         Assert.True(deleted);
-        Assert.Null(await service.GetByIdAsync(existing.Id));
+        Assert.Null(await service.GetByIdAsync(CompleteSeedId));
     }
 
     [Fact]
     public async Task DeleteAsync_ReturnsFalse_WhenIdDoesNotExist()
     {
-        var service = new TodoService();
+        var service = CreateSeededService();
 
         var deleted = await service.DeleteAsync(Guid.NewGuid());
 

@@ -15,3 +15,27 @@ A coding agent is nothing but Model + Tools which it uses to  Perform some tasks
   --------
   
   Add a ?status= query parameter to GET /todos Valid values: 'pending', 'completed', 'all' (default 'all'). Filter accordingly. Follow CLAUDE.md.
+  
+  
+  asked claude only and given this prmpt and changed prompt from claude only waht to inlcude and what to delete so db added 
+  
+  prompt 3
+  ------------
+  
+  1. State the goal (swap TodoService's in-memory store for SQL Server via EF Core) while explicitly preserving the existing ITodoService contract/TodosController (per CLAUDE.md's "controllers stay thin" convention) — only the service implementation and DI registration change.
+ 2. Give the exact connection string using the user's real instance (LAPTOP-4G8BHPK9\SQLEXPRESS, Windows Auth, TrustServerCertificate=True), and say where it belongs (appsettings.Development.json, per existing file layout — no secrets involved since it's Windows Auth, but flag it's machine-specific) and database name shoudl be mytodo
+ 3. Name the exact packages: Microsoft.EntityFrameworkCore.SqlServer, Microsoft.EntityFrameworkCore.Design, dotnet-ef tool.
+ 4. Reference the real files it will touch: MyTodos.Api/Models/Todo.cs, Services/ITodoService.cs, Services/TodoService.cs, Program.cs, appsettings.Development.json, and a new Data/TodosDbContext.cs.
+ 5. Cover the seed-data equivalent (the current constructor seeds 2 todos — ask for an EF HasData() seed or a startup seed so behavior isn't silently lost) and migrations (dotnet ef migrations add InitialCreate, apply on startup or via dotnet ef database update).
+ 6. Flag the test-project problem directly: MyTodos.Api.Tests/TodoServiceTests.cs currently does new TodoService() with zero dependencies (D:\section3\MyTodos.Api.Tests\TodoServiceTests.cs) — once TodoService depends on a DbContext, those tests break unless the prompt tells the agent how to keep them fast/isolated (e.g., EF Core's SQLite or InMemory provider for tests, not the real SQL Server instance).
+ 7. Ask for the CLAUDE.md updates (tech stack "Storage" line, repo layout, out-of-scope list, testing section) as part of the same task, per the user's confirmed answer.
+ 8. End with the same verification bar CLAUDE.md already uses: dotnet build, dotnet test, npm run build/npm run lint unaffected (frontend shouldn't need changes).
+
+ Files
+
+ None — this turn's output is prompt text delivered in the chat response, not a file edit.
+
+ Verification
+
+ N/A (no code executes this turn). The user will use the delivered prompt text in a later session; that session is responsible for its own build/test verification.
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
